@@ -2,9 +2,7 @@
 
 An AI shopping agent pays with your saved PayPal account, but only inside rules you set. Every purchase it attempts is **allowed** automatically, **sent to you for approval**, or **denied**, and every attempt lands in an audit log.
 
-Only 19% of shoppers trust agents to follow their guidance. LeashPay makes that guidance enforceable: the agent has no path to PayPal except through a deterministic policy engine.
-
-**Live demo:** _TODO: Render URL_ · **Video:** _TODO: YouTube link_
+The rules are enforceable, not advisory: the agent has no path to PayPal except through a deterministic policy engine.
 
 ## How it works
 
@@ -86,7 +84,8 @@ You need Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 22, a PayPal De
    cd frontend && npm install && npm run dev    # second terminal; UI on http://localhost:5173
    ```
 
-4. **Tests** (policy engine, and the gate with PayPal stubbed):
+4. **Try it.** "Buy me a bag of coffee beans" (allowed, $18), "Get the new cookbook set" ($65, goes to Approvals), "Buy a BeanBox $40 gift card" (denied: category). Then open **Audit log** and use the chat's starters: "Why denied?", "Spend by merchant" (the auditor hands it to Studio's lead, which adds a chart), "Anything suspicious?" (filters the page to the attempts worth a look).
+5. **Tests** (policy engine, and the gate with PayPal stubbed):
 
    ```sh
    cd backend && uv run python test_policy.py && uv run python test_gate.py
@@ -96,14 +95,7 @@ You need Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 22, a PayPal De
 
 The repo has a `Dockerfile` and `render.yaml`. In Render, create a Blueprint from the repo and fill in `APP_PASSWORD` (without it the app only answers on localhost), `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` and `ANTHROPIC_API_KEY`, plus `VITE_AG_LICENSE_KEY` if you have an AG Studio key (it's read at build time). Then point the PayPal webhook at `https://<service>.onrender.com/api/webhooks/paypal`.
 
-The free plan wipes SQLite on every restart. After connecting the sandbox buyer once, copy the vault ID from the service log line `Saved PayPal vault_id …` into `DEMO_VAULT_ID` so the hosted demo stays connected.
-
-## For judges
-
-- Hosted demo: _TODO: Render URL_. Password: _TODO_ (any username).
-- Sandbox buyer for "Connect PayPal": _TODO: sandbox buyer email_ / _TODO: password_
-- Try: "Buy me a bag of coffee beans" (allowed, $18), "Get the new cookbook set" ($65, goes to Approvals), "Buy a BeanBox $40 gift card" (denied: category).
-- Then open **Audit log** and use the chat's starters: "Why denied?", "Spend by merchant" (the auditor hands it to Studio's lead, which adds a chart), "Anything suspicious?" (filters the page to the attempts worth a look).
+The free plan wipes SQLite on every restart. After connecting the sandbox buyer once, copy the vault ID from the service log line `Saved PayPal vault_id …` into `DEMO_VAULT_ID` so the hosted instance stays connected.
 
 ## Limitations and production path
 

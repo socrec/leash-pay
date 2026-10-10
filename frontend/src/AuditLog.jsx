@@ -175,7 +175,7 @@ function GateFunnel(params) {
               <i style={{ width: pct(shown[i][0]) }} /><i className="rest" style={{ width: pct(total[i][0] - shown[i][0]) }} />
             </span>
             <span className="mono small">
-              {shown[i][0]} in · {shown[i][1]} {s === 'Passed' ? 'paid' : s === 'Approval' ? 'asked you' : 'stopped'}
+              {shown[i][0]} in · {shown[i][1]} {s === 'Passed' ? 'allowed' : s === 'Approval' ? 'asked you' : 'stopped'}
             </span>
           </button>
         </li>

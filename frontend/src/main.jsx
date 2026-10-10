@@ -7,6 +7,7 @@ const AuditLog = lazy(() => import('./AuditLog.jsx')) // AG Studio is megabytes:
 const EXAMPLE_RULES = 'Max $100 per order and $200 a month. Groceries and books only. Ask me before anything over $30.'
 const SUGGESTIONS = ['Buy me a bag of coffee beans', 'Get the new cookbook set', 'Buy a BeanBox $40 gift card']
 const TRACE = { pass: ['check', 'passed'], deny: ['x', 'stopped here'], approve: ['clock', 'asks you'], skip: ['minus', 'not checked'] }
+const DONE = { paid: 'ok', charging: 'notice', rejected: 'notice' } // how an approve/reject ended; anything else is an error
 const thisMonth = () => new Date().toLocaleString('en', { month: 'long', timeZone: 'UTC' })
 
 function App() {
@@ -22,7 +23,7 @@ function App() {
   ]), [])
 
   useEffect(() => {
-    const onHash = () => setPage(location.hash.slice(2) || 'shop')
+    const onHash = () => { setPage(location.hash.slice(2) || 'shop'); scrollTo(0, 0) } // a new tab starts at its top
     addEventListener('hashchange', onHash)
     reload()
     const timer = setInterval(reload, 3000) // inbox and audit log pick up webhook/phone changes
@@ -132,7 +133,7 @@ function Wallet({ wallet, reload }) {
               <span className={rulesDone ? 'num done' : 'num'}>{rulesDone ? <Icon name="check" size={14} /> : 2}</span>
               <h2>Set your rules in plain English</h2><span className="mono muted small">Step 2</span>
             </div>
-            <label className="field">Your rules<textarea rows={3} value={text} onChange={e => setText(e.target.value)} /></label>
+            <label className="field">Your rules<textarea rows={3} value={text} onChange={e => { setText(e.target.value); setDraft(null) }} /></label>
             <div className="row">
               <button onClick={parse} disabled={busy || !text.trim()}>{busy && !draft ? 'Reading…' : 'Read my rules'}</button>
               <span className="muted small">A model reads your words. Plain code enforces the result.</span>
@@ -258,6 +259,9 @@ function Shop({ wallet, purchases, reload }) {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const live = Object.fromEntries(purchases.map(p => [p.id, p])) // chat cards follow later approvals and refunds
+  // The model gets past turns as text only; without its gate results it decides those purchases never happened.
+  const results = ps => (ps?.length ? `\n[gate results: ${ps.map(p => live[p.id] ?? p)
+    .map(p => `#${p.id} ${itemsText(p.items)}, ${money(p.amount)}: ${p.status} (${p.rule})`).join('; ')}]` : '')
 
   const send = async message => {
     if (!message.trim()) return
@@ -266,7 +270,7 @@ function Shop({ wallet, purchases, reload }) {
     try {
       // Chat is user/reply pairs, so an even slice starts with a user turn. Failed replies aren't sent.
       const history = chat.slice(-20).filter(m => m.role !== 'error')
-        .map(m => ({ role: m.role === 'agent' ? 'assistant' : 'user', content: m.text }))
+        .map(m => ({ role: m.role === 'agent' ? 'assistant' : 'user', content: m.text + results(m.purchases) }))
       const r = await api('/agent', { method: 'POST', body: { text: message, history } })
       setChat(c => [...c, { role: 'agent', text: r.reply, purchases: r.purchases }])
       reload()
@@ -318,8 +322,10 @@ function Inbox({ wallet, purchases, reload }) {
   const [run, busy, error] = useBusy()
   const pending = purchases.filter(p => p.status === 'pending')
   const limit = wallet.policy?.max_per_month
+  const [done, setDone] = useState(null) // the last approve/reject result: the card vanishes either way, so say how it ended
   const act = run(async (id, action) => {
-    try { await api(`/purchases/${id}/${action}`, { method: 'POST' }) } finally { await reload() }
+    setDone(null)
+    try { setDone(await api(`/purchases/${id}/${action}`, { method: 'POST' })) } finally { await reload() }
   })
   return (
     <div className="page narrow">
@@ -328,6 +334,11 @@ function Inbox({ wallet, purchases, reload }) {
         <p>Purchases above your ask-me limit land here. Approving re-checks every rule before PayPal is charged, so a change since the request can still deny it.</p>
       </div>
       {error && <p className="error">{error}</p>}
+      {done && (
+        <p className={DONE[done.status] ?? 'error'}>
+          #{done.id} · {money(done.amount)} at {done.merchant}: <b>{done.status}</b>{done.status === 'denied' && ` (${done.rule})`}
+        </p>
+      )}
       {pending.length === 0 && (
         <div className="empty"><b>Nothing to approve.</b><span className="muted">Purchases above your "ask me" limit land here.</span></div>
       )}
@@ -353,6 +364,9 @@ function Inbox({ wallet, purchases, reload }) {
                   <span className="mono"><b>{money(wallet.spent + p.amount)}</b> <span className="muted">of {money(limit)}</span></span>
                 </div>
                 <Meter limit={limit} spent={wallet.spent} extra={p.amount} />
+                {Math.round((wallet.spent + p.amount) * 100) > Math.round(limit * 100) && (
+                  <p className="error small">That's over your monthly budget: if you approve, the gate will deny it.</p>
+                )}
               </div>
             )}
           </div>

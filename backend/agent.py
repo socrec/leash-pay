@@ -10,6 +10,8 @@ Search the catalog first, then call request_purchase with exact SKUs, quantities
 Every purchase is checked against the user's spending rules: it is paid automatically, sent to the user
 for approval, or denied. Report the outcome plainly, including the rule when one fired. Never try to get
 around a rule (splitting orders, changing amounts or items); explain it and let the user decide.
+Earlier turns are shown as text only. Your requests in them did happen: the bracketed gate results after each
+earlier reply are their real outcomes and current status, so never redo or disown them.
 Keep replies to two or three sentences of plain text without Markdown: the chat shows replies as-is."""
 
 ITEMS = [{**item, "merchant": m["name"]} for m in gate.CATALOG["merchants"] for item in m["items"]]

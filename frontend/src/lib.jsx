@@ -9,7 +9,10 @@ export async function api(path, { method = 'GET', body, signal } = {}) {
     signal,
   })
   const data = await r.json().catch(() => ({}))
-  if (!r.ok) throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail ?? r.statusText))
+  const { detail } = data
+  // A validation error is a list that echoes the whole input back; show only its messages.
+  if (!r.ok) throw new Error(typeof detail === 'string' ? detail
+    : Array.isArray(detail) ? detail.map(d => d.msg).join('; ') : JSON.stringify(detail ?? r.statusText))
   return data
 }
 
