@@ -39,7 +39,7 @@ The rules are enforceable, not advisory: the agent has no path to PayPal except 
 - The gate prices the cart from `catalog.json`. If the agent claims a different total, invents a SKU, or uses a SKU from another merchant, the attempt is denied and logged.
 - Approve/reject/refund use an atomic status transition, so a double tap can't charge twice. Each charge also sends a per-purchase `PayPal-Request-Id`.
 - Denied and pending attempts are logged the same way as paid ones.
-- Only you can approve. Every write needs a header that other websites can't forge, and anywhere but localhost the whole app sits behind `APP_PASSWORD`.
+- Only you can approve. Every write needs a header that other websites can't forge, and setting `APP_PASSWORD` puts the whole app behind a password.
 
 ## Audit log on AG Studio
 
@@ -75,7 +75,7 @@ The audit log is one AG Studio dashboard ([frontend/src/AuditLog.jsx](frontend/s
 You need Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 22, a PayPal Developer account and a Claude API key.
 
 1. **PayPal sandbox app.** At [developer.paypal.com](https://developer.paypal.com) → Apps & Credentials → Sandbox, create an app and turn on **Save payment methods** (Vault) in its features. Use the default sandbox personal account as the buyer.
-2. **Webhook (optional locally).** In the app's Webhooks section, add `https://<your-host>/api/webhooks/paypal` with the `PAYMENT.CAPTURE.*` events above and copy the Webhook ID. Locally you need a tunnel (ngrok, cloudflared) for PayPal to reach you; everything else works without it. The webhook works through a tunnel as is; to open the UI through one, set `APP_PASSWORD`.
+2. **Webhook (optional locally).** In the app's Webhooks section, add `https://<your-host>/api/webhooks/paypal` with the `PAYMENT.CAPTURE.*` events above and copy the Webhook ID. Locally you need a tunnel (ngrok, cloudflared) for PayPal to reach you; everything else works without it.
 3. **Configure and start.**
 
    ```sh
@@ -93,14 +93,14 @@ You need Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 22, a PayPal De
 
 ## Deploy to Render
 
-The repo has a `Dockerfile` and `render.yaml`. In Render, create a Blueprint from the repo and fill in `APP_PASSWORD` (without it the app only answers on localhost), `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` and `ANTHROPIC_API_KEY`, plus `VITE_AG_LICENSE_KEY` if you have an AG Studio key (it's read at build time). Then point the PayPal webhook at `https://<service>.onrender.com/api/webhooks/paypal`.
+The repo has a `Dockerfile` and `render.yaml`. In Render, create a Blueprint from the repo and fill in `APP_PASSWORD` (optional; without it the app is open to anyone with the URL), `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` and `ANTHROPIC_API_KEY`, plus `VITE_AG_LICENSE_KEY` if you have an AG Studio key (it's read at build time). Then point the PayPal webhook at `https://<service>.onrender.com/api/webhooks/paypal`.
 
 The free plan wipes SQLite on every restart. After connecting the sandbox buyer once, copy the vault ID from the service log line `Saved PayPal vault_id …` into `DEMO_VAULT_ID` so the hosted instance stays connected.
 
 ## Limitations and production path
 
 - **One sandbox merchant.** All demo money goes to one sandbox merchant account; BeanBox and PageTurn are fake stores in `catalog.json`. A real deployment would pay real merchants through PayPal's agentic commerce services.
-- **Single user, one shared password.** There is one wallet row, and outside localhost the whole app sits behind `APP_PASSWORD` (HTTP Basic). Real users need accounts.
+- **Single user, one shared password.** There is one wallet row, and the only lock is the optional shared `APP_PASSWORD` (HTTP Basic). Real users need accounts.
 - **Per-order splitting.** The agent is told not to split orders to stay under the approval threshold, and the monthly budget caps the damage, but the engine doesn't detect splitting.
 - **Failed charges aren't retried**; ask the agent again. A charge whose outcome is unclear (timeout, PayPal 5xx) stays `charging` and counts against the budget until PayPal's webhook settles it.
 - **Dashboard layout isn't saved.** Widgets the agents add last until the page reloads; persisting `api.getState()` per user comes with accounts.

@@ -42,8 +42,8 @@ A change is done when both test files pass and the frontend builds.
    `policy.SPENT` is the only definition of that set. The check and the commit that follows it run under `gate._lock`.
 9. Secrets come only from env vars. Never log tokens, `.env` contents or full webhook headers.
 10. **Only the user can act.** `app.guard` refuses non-GET requests without the `X-LeashPay` header (`api()` sends it), so
-   other sites can't approve or refund (CSRF). Without `APP_PASSWORD` it serves only `localhost`; with it, every request
-   needs the password. The PayPal webhook is the one exemption: it is checked by signature.
+   other sites can't approve or refund (CSRF). With `APP_PASSWORD` set, every request needs the password; without it,
+   anyone who can reach the app can use it. The PayPal webhook is the one exemption: it is checked by signature.
 
 ## Purchase status lifecycle
 

@@ -28,8 +28,7 @@ with Session(engine) as s:
         s.commit()
 
 app = FastAPI(title="LeashPay")
-# Unset (local dev): only localhost is served, which also stops DNS rebinding. Set it before the app is reachable from
-# anywhere else (Render, a tunnel, your LAN); the browser then asks for it once (any username) and resends it.
+# Optional. Set, the browser asks for it once (any username) and resends it. Unset, anyone who can reach the app can use it.
 PASSWORD = os.environ.get("APP_PASSWORD")
 WEBHOOK = "/api/webhooks/paypal"
 
@@ -46,8 +45,6 @@ def _authorized(header: str) -> bool:
 @app.middleware("http")
 async def guard(request: Request, call_next):
     if request.url.path != WEBHOOK:  # PayPal can't log in; the webhook is checked by its signature instead
-        if not PASSWORD and request.url.hostname not in ("localhost", "127.0.0.1"):
-            return JSONResponse({"detail": "set APP_PASSWORD to serve beyond localhost"}, status_code=403)
         if PASSWORD and not _authorized(request.headers.get("authorization", "")):
             return Response(status_code=401, headers={"WWW-Authenticate": 'Basic realm="LeashPay"'})
         # Any site can send a form post or a no-cors fetch here (CSRF), but not with a custom header: that needs a CORS
