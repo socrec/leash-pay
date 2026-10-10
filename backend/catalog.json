@@ -1,0 +1,27 @@
+{
+  "merchants": [
+    {
+      "id": "beanbox",
+      "name": "BeanBox Coffee",
+      "items": [
+        {"sku": "BB-HOUSE", "name": "House Blend coffee beans, 1 lb", "price": 18.00, "category": "groceries"},
+        {"sku": "BB-ETHIOPIA", "name": "Ethiopia single-origin coffee beans, 12 oz", "price": 22.00, "category": "groceries"},
+        {"sku": "BB-DECAF", "name": "Swiss Water decaf coffee beans, 1 lb", "price": 19.00, "category": "groceries"},
+        {"sku": "BB-SAMPLER", "name": "Single-origin sampler, 4 bags", "price": 48.00, "category": "groceries"},
+        {"sku": "BB-GRINDER", "name": "Burr coffee grinder", "price": 89.00, "category": "kitchenware"},
+        {"sku": "BB-GIFT40", "name": "BeanBox gift card, $40", "price": 40.00, "category": "gift_cards"}
+      ]
+    },
+    {
+      "id": "pageturn",
+      "name": "PageTurn Books",
+      "items": [
+        {"sku": "PT-COOKSET", "name": "The New Home Kitchen cookbook set, 3 volumes", "price": 65.00, "category": "books"},
+        {"sku": "PT-HARBOR", "name": "The Quiet Harbor (paperback novel)", "price": 14.00, "category": "books"},
+        {"sku": "PT-ORBIT", "name": "Orbit of Glass (hardcover sci-fi)", "price": 28.00, "category": "books"},
+        {"sku": "PT-MOTH", "name": "Moss the Moth (picture book)", "price": 12.00, "category": "books"},
+        {"sku": "PT-GIFT40", "name": "PageTurn gift card, $40", "price": 40.00, "category": "gift_cards"}
+      ]
+    }
+  ]
+}

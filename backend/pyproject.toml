@@ -1,0 +1,14 @@
+[project]
+name = "leashpay"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=1.11.0",
+    "fastapi>=0.142.2",
+    "httpx>=0.28.1",
+    "sqlmodel>=0.0.48",
+    "uvicorn>=0.54.0",
+]
+
+[tool.uv]
+package = false
