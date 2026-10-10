@@ -101,7 +101,7 @@ You need Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 22, a PayPal De
 
 The repo has a `Dockerfile` and `render.yaml`. In Render, create a Blueprint from the repo and fill in `APP_PASSWORD` (optional; without it the app is open to anyone with the URL), `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` and `ANTHROPIC_API_KEY`, plus `VITE_AG_LICENSE_KEY` if you have an AG Studio key (it's read at build time). Then point the PayPal webhook at `https://<service>.onrender.com/api/webhooks/paypal`.
 
-The free plan wipes SQLite on every restart. After connecting the sandbox buyer once, copy the vault ID from the service log line `Saved PayPal vault_id …` into `DEMO_VAULT_ID` so the hosted instance stays connected.
+The Blueprint uses the Starter plan with a 1 GB disk at `/var/data` for SQLite, so data survives deploys and restarts (a disk also means a few seconds of downtime per deploy). On the free plan, drop the `disk` block and `DATABASE_URL`: SQLite is then wiped on every restart, so after connecting the sandbox buyer once, copy the vault ID from the service log line `Saved PayPal vault_id …` into `DEMO_VAULT_ID` to keep the hosted instance connected.
 
 ## Limitations and production path
 

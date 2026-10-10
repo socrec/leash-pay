@@ -2,8 +2,15 @@ services:
   - type: web
     name: leashpay
     runtime: docker
-    plan: free
+    # A disk needs a paid plan; without one, every deploy or restart starts with an empty SQLite file.
+    plan: starter
+    disk:
+      name: leashpay-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
+      - key: DATABASE_URL
+        value: sqlite:////var/data/leashpay.db
       - key: APP_PASSWORD
         sync: false
       - key: PAYPAL_CLIENT_ID
