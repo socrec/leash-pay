@@ -4,6 +4,8 @@ An AI shopping agent pays with your saved PayPal account, but only inside rules 
 
 The rules are enforceable, not advisory: the agent has no path to PayPal except through a deterministic policy engine.
 
+![Shop: the agent buys coffee beans, the gate allows it and the vaulted PayPal account is charged](docs/shop.png)
+
 ## How it works
 
 ```
@@ -33,6 +35,8 @@ The rules are enforceable, not advisory: the agent has no path to PayPal except 
 4. **Approvals.** A phone-friendly inbox shows pending purchases with the agent's reason. Approve re-checks the policy (the month may have filled up since) and then charges.
 5. **Audit log.** An [AG Studio](https://www.ag-grid.com/studio/) dashboard of every attempt, with a chat panel whose agents build more of it on request. Group by decision, filter by merchant or status, and refund paid orders from the row. See below.
 
+![Approvals: a pending $48 order, the agent's reason, the rule that fired, and a warning that the month has filled up since the request](docs/approvals.png)
+
 ### Why the agent can't get around the rules
 
 - `paypal.charge()` is only called from [backend/gate.py](backend/gate.py), and only after `policy.check()` returns `allow` (or a human approves and the re-check doesn't deny).
@@ -44,6 +48,8 @@ The rules are enforceable, not advisory: the agent has no path to PayPal except 
 ## Audit log on AG Studio
 
 The audit log is one AG Studio dashboard ([frontend/src/AuditLog.jsx](frontend/src/AuditLog.jsx)) over every purchase attempt, refreshed every 3 seconds.
+
+![Audit log: the AG Studio dashboard filtered to denied attempts after asking the auditor agent "Why denied?"](docs/audit-log.png)
 
 - **Layout:** attempt and value tiles, a status button filter, a decision donut, a merchant list filter and two custom widgets. Click any chart or funnel step to cross-filter the rest. **Edit layout** switches to Studio's drag-and-drop editor, with both custom widgets in a "LeashPay" menu.
 - **Purchases widget (custom):** AG Grid (Community) inside a Studio widget. It reads whatever the page's filters let through. Grouped by decision with merged cells, or newest first, with a **Refund** button on paid rows. Refund goes through the same `api()` → `gate.refund()` → `db.claim()` path as before.
